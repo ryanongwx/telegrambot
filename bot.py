@@ -1,0 +1,572 @@
+## https://www.youtube.com/watch?v=PTAkiukJK7E
+
+from telegram.ext import Updater
+from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from constants import API_KEY
+import requests
+import logging
+from telegram.ext import (
+    Updater,
+    CommandHandler,
+    MessageHandler,
+    Filters,
+    ConversationHandler,
+    CallbackContext,
+    CallbackQueryHandler,
+)
+import sqlite3
+from datetime import *
+import os
+PORT = int(os.environ.get('PORT', 5000))
+
+# Configuring the database
+conn = sqlite3.connect('freetime.db')
+c = conn.cursor()
+
+c.execute('''CREATE TABLE IF NOT EXISTS FREETIME(
+            user_name text,
+            week text,
+            free_timeslots text
+            )''')
+
+conn.commit()
+conn.close()
+
+
+# Create the Updater and pass it your bot's token.
+updater = Updater(token=API_KEY, use_context=True)
+
+# Get the dispatcher to register handlers
+dispatcher = updater.dispatcher
+
+logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                     level=logging.INFO)
+
+logger = logging.getLogger(__name__)
+
+day = 0
+freeslots = []
+# Stages
+FIRST, SECOND, THIRD = range(3)
+# Callback data
+Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, Morning, Afternoon, Night = range(10)
+
+def log(prevanswer, context, update):
+    daysofweek = ["Monday", "Tuesday", "Wednesday", "Thursday", 'Friday', 'Saturday',
+                  'Sunday', 'Morning', 'Afternoon', 'Night']
+    query = update.callback_query
+    if 6 < int(query.data) < 10:
+        freeslot = prevanswer + " " + daysofweek[int(query.data)]
+        freeslots.append(freeslot)
+        freeslotstext = ""
+        for i in freeslots:
+            freeslotstext += i + ", "
+        text = user.first_name + " is free on " + freeslotstext
+        logger.info(text)
+#        context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
+    else:
+        text = user.first_name + " is free on " + daysofweek[int(query.data)]
+        logger.info(text)
+    global day
+    day = daysofweek[int(query.data)]
+
+def start(update: Update, context: CallbackContext) -> int:
+    """Send message on `/start`."""
+    # Get user that sent /start and log his name
+    global user
+    user = update.message.from_user
+    global freeslots
+    freeslots = []
+    logger.info("User %s started the conversation.", user.first_name)
+    # Build InlineKeyboard where each button has a displayed text
+    # and a string as callback_data
+    # The keyboard is a list of button rows, where each row is in turn
+    # a list (hence `[[...]]`).
+    keyboard = [
+        [
+            InlineKeyboardButton("Monday", callback_data=str(Monday)),
+            InlineKeyboardButton("Tuesday", callback_data=str(Tuesday)),
+        ],
+        [   InlineKeyboardButton("Wednesday", callback_data=str(Wednesday))],
+        [
+            InlineKeyboardButton("Thursday", callback_data=str(Thursday)),
+            InlineKeyboardButton("Friday", callback_data=str(Friday)),
+        ],
+        [
+            InlineKeyboardButton("Saturday", callback_data=str(Saturday)),
+            InlineKeyboardButton("Sunday", callback_data=str(Sunday)),
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Send message with text and appended InlineKeyboard
+    update.message.reply_text("Choose a day you are free", reply_markup=reply_markup)
+    # Tell ConversationHandler that we're in state `FIRST` now
+    return FIRST
+
+
+def start_over(update: Update, context: CallbackContext) -> int:
+    """Prompt same text & keyboard as `start` does but not as new message"""
+    # Get CallbackQuery from Update
+    query = update.callback_query
+    # CallbackQueries need to be answered, even if no notification to the user is needed
+    # Some clients may have trouble otherwise. See https://core.telegram.org/bots/api#callbackquery
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Monday", callback_data=str(Monday)),
+            InlineKeyboardButton("Tuesday", callback_data=str(Tuesday)),
+        ],
+        [   InlineKeyboardButton("Wednesday", callback_data=str(Wednesday))],
+        [
+            InlineKeyboardButton("Thursday", callback_data=str(Thursday)),
+            InlineKeyboardButton("Friday", callback_data=str(Friday)),
+        ],
+        [
+            InlineKeyboardButton("Saturday", callback_data=str(Saturday)),
+            InlineKeyboardButton("Sunday", callback_data=str(Sunday)),
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Instead of sending a new message, edit the message that
+    # originated the CallbackQuery. This gives the feeling of an
+    # interactive menu.
+    query.edit_message_text(text="Choose a day you are free", reply_markup=reply_markup)
+    return FIRST
+
+
+def monday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Monday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+
+def tuesday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Tuesday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+
+def wednesday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Wednesday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+
+def thursday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Thursday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+def friday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Friday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+def saturday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Saturday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+def sunday(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Morning", callback_data=str(Morning)),
+            InlineKeyboardButton("Afternoon", callback_data=str(Afternoon)),
+            InlineKeyboardButton("Night", callback_data=str(Night)),
+
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Sunday, Choose a timing", reply_markup=reply_markup
+    )
+    return SECOND
+
+def morning(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Finish", callback_data=str(Monday)),
+            InlineKeyboardButton("Log another time slot", callback_data=str(Tuesday)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Pick another time slot or leave", reply_markup=reply_markup
+    )
+    return THIRD
+
+def afternoon(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Finish", callback_data=str(Monday)),
+            InlineKeyboardButton("Log another time slot", callback_data=str(Tuesday)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Pick another time slot or leave", reply_markup=reply_markup
+    )
+    return THIRD
+
+def night(update: Update, context: CallbackContext) -> int:
+    """Show new choice of buttons"""
+    query = update.callback_query
+    log(day, context, update)
+    query.answer()
+    keyboard = [
+        [
+            InlineKeyboardButton("Finish", callback_data=str(Monday)),
+            InlineKeyboardButton("Log another time slot", callback_data=str(Tuesday)),
+        ]
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    query.edit_message_text(
+        text="Pick another time slot or leave", reply_markup=reply_markup
+    )
+    return THIRD
+
+def nameday(day):
+    if day == "1":
+        day += "st"
+    elif day == "2":
+        day += "nd"
+    elif day == "3":
+        day += "rd"
+    else:
+        day += "th"
+    return day
+
+def findindb(username, week1):
+    conn1 = sqlite3.connect('freetime.db')
+    c1 = conn1.cursor()
+    c1.execute('''SELECT user_name FROM FREETIME WHERE week = (?)''', (week1,))
+    names = c1.fetchall()
+    conn1.close()
+    # fetchall() returns a list of tuples
+    for i in names:
+        if username in i:
+            return True
+    else:
+        return False
+
+def arraytotext(array):
+    # This converts an array into text with elements separated by commas
+    text = ""
+    for i in array:
+        if text == "":
+            text += i
+        else:
+            text += ", " + i
+    return text
+
+
+
+def addtodb(username, freetimeslots, context, update):
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+              'November', 'December']
+    # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
+    # TODO program the msg to send every sunday
+    daytoday = str(date.today().day + 1)
+    month = months[date.today().month - 1]
+    weeklater = str(int(daytoday) + 7)
+    weektext = nameday(daytoday) + " to " + nameday(weeklater) + " " + month
+    #text is the week for use in the database
+    if findindb(user.first_name, weektext) is True:
+        return context.bot.send_message(text="You have already submitted your schedule for this week!", chat_id=update.effective_message.chat_id)
+
+    if findindb(user.first_name, weektext) is False:
+        # if the slot for this person is not found in the db already, create a line in the db for it
+        conn2 = sqlite3.connect('freetime.db')
+        c2 = conn2.cursor()
+        c2.execute('''INSERT INTO FREETIME(user_name, week, free_timeslots)
+            VALUES(?, ?, ?)''', (username, weektext, arraytotext(freetimeslots)))
+        conn2.commit()
+        conn2.close()
+
+
+
+def end(update: Update, context: CallbackContext) -> int:
+    """Returns `ConversationHandler.END`, which tells the
+    ConversationHandler that the conversation is over.
+    """
+    query = update.callback_query
+    query.answer()
+    freeslotstext = arraytotext(freeslots)
+    text = user.first_name + " is free on " + freeslotstext + "."
+    context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
+    addtodb(user.first_name, freeslots, context, update)
+    query.edit_message_text(text="Thank you for filling in!")
+
+
+
+    return ConversationHandler.END
+
+def result(update: Update, context: CallbackContext) -> int:
+    """Send message on `/result`."""
+    # Get user that sent /start and log his name
+
+    mondaymorning = []
+    mondayafternoon = []
+    mondaynight = []
+    tuesdaymorning = []
+    tuesdayafternoon = []
+    tuesdaynight = []
+    wednesdaymorning = []
+    wednesdayafternoon = []
+    wednesdaynight = []
+    thursdaymorning = []
+    thursdayafternoon = []
+    thursdaynight = []
+    fridaymorning = []
+    fridayafternoon = []
+    fridaynight = []
+    saturdaymorning = []
+    saturdayafternoon = []
+    saturdaynight = []
+    sundaymorning = []
+    sundayafternoon = []
+    sundaynight = []
+
+
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+              'November', 'December']
+    # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
+    # TODO program the msg to send every sunday
+    daytoday = str(date.today().day + 1)
+    month = months[date.today().month - 1]
+    weeklater = str(int(daytoday) + 7)
+    weektext = nameday(daytoday) + " to " + nameday(weeklater) + " " + month
+    conn3 = sqlite3.connect('freetime.db')
+    c3 = conn3.cursor()
+    c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (?)''', (weektext,))
+    results = c3.fetchall()
+    conn3.close()
+    for row in results:
+        name = row[0]
+        freetimeslots = row[1]
+        if "Monday Morning" in freetimeslots:
+            mondaymorning.append(name)
+        if "Monday Afternoon" in freetimeslots:
+            mondayafternoon.append(name)
+        if "Monday Night" in freetimeslots:
+            mondaynight.append(name)
+        if "Tuesday Morning" in freetimeslots:
+            tuesdaymorning.append(name)
+        if "Tuesday Afternoon" in freetimeslots:
+            tuesdayafternoon.append(name)
+        if "Tuesday Night" in freetimeslots:
+            tuesdaynight.append(name)
+        if "Wednesday Morning" in freetimeslots:
+            wednesdaymorning.append(name)
+        if "Wednesday Afternoon" in freetimeslots:
+            wednesdayafternoon.append(name)
+        if "Wednesday Night" in freetimeslots:
+            wednesdaynight.append(name)
+        if "Thursday Morning" in freetimeslots:
+            thursdaymorning.append(name)
+        if "Thursday Afternoon" in freetimeslots:
+            thursdayafternoon.append(name)
+        if "Thursday Night" in freetimeslots:
+            thursdaynight.append(name)
+        if "Friday Morning" in freetimeslots:
+            fridaymorning.append(name)
+        if "Friday Afternoon" in freetimeslots:
+            fridayafternoon.append(name)
+        if "Friday Night" in freetimeslots:
+            fridaynight.append(name)
+        if "Saturday Morning" in freetimeslots:
+            saturdaymorning.append(name)
+        if "Saturday Afternoon" in freetimeslots:
+            saturdayafternoon.append(name)
+        if "Saturday Night" in freetimeslots:
+            saturdaynight.append(name)
+        if "Sunday Morning" in freetimeslots:
+            sundaymorning.append(name)
+        if "Sunday Afternoon" in freetimeslots:
+            sundayafternoon.append(name)
+        if "Sunday Night" in freetimeslots:
+            sundaynight.append(name)
+
+    resulttext = """
+    Monday Morning : %s \n
+    Monday Afternoon : %s \n
+    Monday Night : %s \n
+    Tuesday Morning : %s \n
+    Tuesday Afternoon : %s \n
+    Tuesday Night : %s \n
+    Wednesday Morning : %s \n
+    Wednesday Afternoon : %s \n
+    Wednesday Night : %s \n
+    Thursday Morning : %s \n
+    Thursday Afternoon : %s \n
+    Thursday Night : %s \n
+    Friday Morning : %s \n
+    Friday Afternoon : %s \n
+    Friday Night : %s \n
+    Saturday Morning : %s \n
+    Saturday Afternoon : %s \n
+    Saturday Night : %s \n
+    Sunday Morning : %s \n
+    Sunday Afternoon : %s \n
+    Sunday Night : %s"""
+
+    update.message.reply_text(resulttext % (arraytotext(mondaymorning), arraytotext(mondayafternoon), arraytotext(mondaynight),
+                                            arraytotext(tuesdaymorning), arraytotext(tuesdayafternoon),
+                                            arraytotext(tuesdaynight), arraytotext(wednesdaymorning), arraytotext(wednesdayafternoon),
+                                            arraytotext(wednesdaynight), arraytotext(thursdaymorning),
+                                            arraytotext(thursdayafternoon), arraytotext(thursdaynight), arraytotext(fridaymorning),
+                                            arraytotext(fridayafternoon), arraytotext(fridaynight),
+                                            arraytotext(saturdaymorning), arraytotext(saturdayafternoon), arraytotext(saturdaynight),
+                                            arraytotext(sundaymorning), arraytotext(sundayafternoon),
+                                            arraytotext(sundaynight)))
+    return FIRST
+
+# Setup conversation handler with the states FIRST and SECOND
+# Use the pattern parameter to pass CallbackQueries with specific
+# data pattern to the corresponding handlers.
+# ^ means "start of line/string"
+# $ means "end of line/string"
+# So ^ABC$ will only allow 'ABC'
+conv_handler = ConversationHandler(
+    entry_points=[CommandHandler('start', start),],
+    states={
+        FIRST: [
+            CallbackQueryHandler(monday, pattern='^' + str(Monday) + '$'),
+            CallbackQueryHandler(tuesday, pattern='^' + str(Tuesday) + '$'),
+            CallbackQueryHandler(wednesday, pattern='^' + str(Wednesday) + '$'),
+            CallbackQueryHandler(thursday, pattern='^' + str(Thursday) + '$'),
+            CallbackQueryHandler(friday, pattern='^' + str(Friday) + '$'),
+            CallbackQueryHandler(saturday, pattern='^' + str(Saturday) + '$'),
+            CallbackQueryHandler(sunday, pattern='^' + str(Sunday) + '$'),
+
+        ],
+        SECOND: [
+            CallbackQueryHandler(morning, pattern='^' + str(Morning) + '$'),
+            CallbackQueryHandler(afternoon, pattern='^' + str(Afternoon) + '$'),
+            CallbackQueryHandler(night, pattern='^' + str(Night) + '$'),
+
+        ],
+        THIRD: [
+            CallbackQueryHandler(end, pattern='^' + str(Monday) + '$'),
+            CallbackQueryHandler(start_over, pattern='^' + str(Tuesday) + '$'),
+        ],
+    },
+    fallbacks=[CommandHandler('start', start)],
+    )
+
+# Add ConversationHandler to dispatcher that will be used for handling updates
+dispatcher.add_handler(conv_handler)
+dispatcher.add_handler(CommandHandler('result', result))
+
+# Schedule the bot tho remind the user for input every sunday
+# j = updater.job_queue
+# j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
+
+# Start the Bot
+#updater.start_polling()
+updater.start_webhook(listen='0.0.0.0',
+                      port=int(PORT),
+                      url_path=API_KEY)
+updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY )
+
+# Run the bot until you press Ctrl-C or the process receives SIGINT,
+# SIGTERM or SIGABRT. This should be used most of the time, since
+# start_polling() is non-blocking and will stop the bot gracefully.
+updater.idle()
+
+
+#https://towardsdatascience.com/how-to-deploy-a-telegram-bot-using-heroku-for-free-9436f89575d2 follow this to host on heroku
