@@ -1,9 +1,7 @@
 ## https://www.youtube.com/watch?v=PTAkiukJK7E
 
-from telegram.ext import Updater
-from telegram import ReplyKeyboardMarkup, ReplyKeyboardRemove, Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from constants import API_KEY
-import requests
 import logging
 from telegram.ext import (
     Updater,
@@ -17,7 +15,8 @@ from telegram.ext import (
 import sqlite3
 from datetime import *
 import os
-PORT = int(os.environ.get('PORT', 5000))
+
+PORT = int(os.environ.get('PORT', '8443'))
 
 # Configuring the database
 conn = sqlite3.connect('freetime.db')
@@ -558,10 +557,12 @@ dispatcher.add_handler(CommandHandler('result', result))
 
 # Start the Bot
 #updater.start_polling()
-updater.start_webhook(listen='0.0.0.0',
-                      port=int(PORT),
-                      url_path=API_KEY)
-updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY )
+# When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
+# whereas polling makes the bot query in regular intervals for input by user
+updater.start_webhook(listen="0.0.0.0",
+                      port=PORT,
+                      url_path=API_KEY,
+                      webhook_url='https://damp-brook-02881.herokuapp.com/' + API_KEY)
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
