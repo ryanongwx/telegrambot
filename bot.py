@@ -49,6 +49,7 @@ FIRST, SECOND, THIRD = range(3)
 # Callback data
 Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday, Morning, Afternoon, Night = range(10)
 
+
 def log(prevanswer, context, update):
     daysofweek = ["Monday", "Tuesday", "Wednesday", "Thursday", 'Friday', 'Saturday',
                   'Sunday', 'Morning', 'Afternoon', 'Night']
@@ -71,6 +72,14 @@ def log(prevanswer, context, update):
 def start(update: Update, context: CallbackContext) -> int:
     """Send message on `/start`."""
     # Get user that sent /start and log his name
+    # Send starting message
+    text = """Welcome to WhenDavai? bot. This bot allows a group of gamers to input their free times and find common free times to game together.
+    To Use:
+        /start : Start the prompt to input free times for the next week. After inputting one timing, users may select "Log another time slot" to select another time slot in which they are free. Once all free timeslots are logged into the bot, select "Finish" to save your input.
+        /result : Display who's free on all the timeslots
+
+        Note: Users may only input their free times once per week. Repeat submissions will not be saved in the system"""
+    context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
     global user
     user = update.message.from_user
     global freeslots
@@ -516,6 +525,7 @@ def result(update: Update, context: CallbackContext) -> int:
                                             arraytotext(sundaymorning), arraytotext(sundayafternoon),
                                             arraytotext(sundaynight)))
     return FIRST
+
 
 # Setup conversation handler with the states FIRST and SECOND
 # Use the pattern parameter to pass CallbackQueries with specific
