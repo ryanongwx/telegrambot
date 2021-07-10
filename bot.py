@@ -493,6 +493,7 @@ def result(update: Update, context: CallbackContext) -> int:
             sundaynight.append(name)
 
     resulttext = """
+    %s
     Monday Morning : %s \n
     Monday Afternoon : %s \n
     Monday Night : %s \n
@@ -515,7 +516,7 @@ def result(update: Update, context: CallbackContext) -> int:
     Sunday Afternoon : %s \n
     Sunday Night : %s"""
 
-    update.message.reply_text(resulttext % (arraytotext(mondaymorning), arraytotext(mondayafternoon), arraytotext(mondaynight),
+    update.message.reply_text(resulttext % (weektext, arraytotext(mondaymorning), arraytotext(mondayafternoon), arraytotext(mondaynight),
                                             arraytotext(tuesdaymorning), arraytotext(tuesdayafternoon),
                                             arraytotext(tuesdaynight), arraytotext(wednesdaymorning), arraytotext(wednesdayafternoon),
                                             arraytotext(wednesdaynight), arraytotext(thursdaymorning),
