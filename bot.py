@@ -1,4 +1,5 @@
 ## https://www.youtube.com/watch?v=PTAkiukJK7E
+#https://towardsdatascience.com/how-to-deploy-a-telegram-bot-using-heroku-for-free-9436f89575d2
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from constants import API_KEY
@@ -6,8 +7,6 @@ import logging
 from telegram.ext import (
     Updater,
     CommandHandler,
-    MessageHandler,
-    Filters,
     ConversationHandler,
     CallbackContext,
     CallbackQueryHandler,
@@ -359,10 +358,12 @@ def addtodb(username, freetimeslots, context, update):
               'November', 'December']
     # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
     # TODO program the msg to send every sunday
-    daytoday = str(date.today().day + 1)
+    dayofweek = datetime.today().weekday()
+    daystonextmonday = 7 - dayofweek
+    dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(daytoday) + 7)
-    weektext = nameday(daytoday) + " to " + nameday(weeklater) + " " + month
+    weeklater = str(int(dayofnextmonday) + 7)
+    weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     #text is the week for use in the database
     if findindb(user.first_name, weektext) is True:
         return context.bot.send_message(text="You have already submitted your schedule for this week!", chat_id=update.effective_message.chat_id)
@@ -425,10 +426,12 @@ def result(update: Update, context: CallbackContext) -> int:
               'November', 'December']
     # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
     # TODO program the msg to send every sunday
-    daytoday = str(date.today().day + 1)
+    dayofweek = datetime.today().weekday()
+    daystonextmonday = 7 - dayofweek
+    dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(daytoday) + 7)
-    weektext = nameday(daytoday) + " to " + nameday(weeklater) + " " + month
+    weeklater = str(int(dayofnextmonday) + 7)
+    weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     conn3 = sqlite3.connect('freetime.db')
     c3 = conn3.cursor()
     c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (?)''', (weektext,))
