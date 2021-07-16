@@ -14,11 +14,18 @@ from telegram.ext import (
 import sqlite3
 from datetime import *
 import os
+import psycopg2
 
 PORT = int(os.environ.get('PORT', '8443'))
 
 # Configuring the database
-conn = sqlite3.connect('freetime.db')
+conn = psycopg2.connect(
+                host='localhost',
+                database='freetime',
+                user='postgres',
+                password='Liverpoo!9001',
+
+)
 c = conn.cursor()
 
 c.execute('''CREATE TABLE IF NOT EXISTS FREETIME(
