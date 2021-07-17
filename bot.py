@@ -18,7 +18,7 @@ from datetime import *
 import os
 import psycopg2
 
-PORT = int(os.environ.get('PORT', '8443'))
+PORT = int(os.environ.get('PORT', '5432'))
 
 
 # Configuring the database
@@ -594,7 +594,7 @@ dispatcher.add_handler(CommandHandler('result', result))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-# updater.start_polling()
+#updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
 updater.start_webhook(listen="0.0.0.0",
