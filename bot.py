@@ -18,13 +18,13 @@ import psycopg2
 
 PORT = int(os.environ.get('PORT', '8443'))
 
+
 # Configuring the database
 conn = psycopg2.connect(
                 host='localhost',
                 database='freetime',
                 user='postgres',
                 password='Liverpoo!9001',
-
 )
 c = conn.cursor()
 
@@ -345,9 +345,14 @@ def nameday(day):
     return day
 
 def findindb(username, week1):
-    conn1 = sqlite3.connect('freetime.db')
+    conn1 = psycopg2.connect(
+        host='localhost',
+        database='freetime',
+        user='postgres',
+        password='Liverpoo!9001',
+    )
     c1 = conn1.cursor()
-    c1.execute('''SELECT user_name FROM FREETIME WHERE week = (?)''', (week1,))
+    c1.execute('''SELECT user_name FROM FREETIME WHERE week = (%s)''', (week1,))
     names = c1.fetchall()
     conn1.close()
     # fetchall() returns a list of tuples
@@ -378,7 +383,7 @@ def addtodb(username, freetimeslots, context, update):
     daystonextmonday = 7 - dayofweek
     dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(dayofnextmonday) + 7)
+    weeklater = str(int(dayofnextmonday) + 6)
     weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     #text is the week for use in the database
     if findindb(user.first_name, weektext) is True:
@@ -386,10 +391,15 @@ def addtodb(username, freetimeslots, context, update):
 
     if findindb(user.first_name, weektext) is False:
         # if the slot for this person is not found in the db already, create a line in the db for it
-        conn2 = sqlite3.connect('freetime.db')
+        conn2 = psycopg2.connect(
+            host='localhost',
+            database='freetime',
+            user='postgres',
+            password='Liverpoo!9001',
+        )
         c2 = conn2.cursor()
         c2.execute('''INSERT INTO FREETIME(user_name, week, free_timeslots)
-            VALUES(?, ?, ?)''', (username, weektext, arraytotext(freetimeslots)))
+            VALUES(%s, %s, %s)''', (username, weektext, arraytotext(freetimeslots)))
         conn2.commit()
         conn2.close()
 
@@ -446,11 +456,16 @@ def result(update: Update, context: CallbackContext) -> int:
     daystonextmonday = 7 - dayofweek
     dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(dayofnextmonday) + 7)
+    weeklater = str(int(dayofnextmonday) + 6)
     weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
-    conn3 = sqlite3.connect('freetime.db')
+    conn3 = psycopg2.connect(
+        host='localhost',
+        database='freetime',
+        user='postgres',
+        password='Liverpoo!9001',
+    )
     c3 = conn3.cursor()
-    c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (?)''', (weektext,))
+    c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s)''', (weektext,))
     results = c3.fetchall()
     conn3.close()
     for row in results:
@@ -577,7 +592,7 @@ dispatcher.add_handler(CommandHandler('result', result))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-#updater.start_polling()
+# updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
 updater.start_webhook(listen="0.0.0.0",
