@@ -1,5 +1,7 @@
 ## https://www.youtube.com/watch?v=PTAkiukJK7E
 #https://towardsdatascience.com/how-to-deploy-a-telegram-bot-using-heroku-for-free-9436f89575d2
+# This is the psycopg2 documentation needed to manage the database
+#https://www.psycopg.org/docs/sql.html
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from constants import API_KEY
@@ -21,10 +23,10 @@ PORT = int(os.environ.get('PORT', '8443'))
 
 # Configuring the database
 conn = psycopg2.connect(
-                host='localhost',
-                database='freetime',
-                user='postgres',
-                password='Liverpoo!9001',
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
 )
 c = conn.cursor()
 
@@ -346,10 +348,10 @@ def nameday(day):
 
 def findindb(username, week1):
     conn1 = psycopg2.connect(
-        host='localhost',
-        database='freetime',
-        user='postgres',
-        password='Liverpoo!9001',
+        host='ec2-54-227-246-76.compute-1.amazonaws.com',
+        database='dcru7mpak14mu5',
+        user='qezdsylauxhwfj',
+        password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
     )
     c1 = conn1.cursor()
     c1.execute('''SELECT user_name FROM FREETIME WHERE week = (%s)''', (week1,))
@@ -392,10 +394,10 @@ def addtodb(username, freetimeslots, context, update):
     if findindb(user.first_name, weektext) is False:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn2 = psycopg2.connect(
-            host='localhost',
-            database='freetime',
-            user='postgres',
-            password='Liverpoo!9001',
+            host='ec2-54-227-246-76.compute-1.amazonaws.com',
+            database='dcru7mpak14mu5',
+            user='qezdsylauxhwfj',
+            password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
         )
         c2 = conn2.cursor()
         c2.execute('''INSERT INTO FREETIME(user_name, week, free_timeslots)
@@ -459,10 +461,10 @@ def result(update: Update, context: CallbackContext) -> int:
     weeklater = str(int(dayofnextmonday) + 6)
     weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     conn3 = psycopg2.connect(
-        host='localhost',
-        database='freetime',
-        user='postgres',
-        password='Liverpoo!9001',
+        host='ec2-54-227-246-76.compute-1.amazonaws.com',
+        database='dcru7mpak14mu5',
+        user='qezdsylauxhwfj',
+        password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
     )
     c3 = conn3.cursor()
     c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s)''', (weektext,))
