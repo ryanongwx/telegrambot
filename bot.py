@@ -16,11 +16,12 @@ from telegram.ext import (
 from datetime import *
 import os
 import psycopg2
+from calendar import monthrange
 
 PORT = int(os.environ.get('PORT', '8443'))
 
 
-# Configuring the database
+# Configuring the database by connecting to my heroku postgres database
 conn = psycopg2.connect(
                 host='ec2-54-227-246-76.compute-1.amazonaws.com',
                 database='dcru7mpak14mu5',
@@ -85,6 +86,7 @@ def start(update: Update, context: CallbackContext) -> int:
     To Use:
         /start : Start the prompt to input free times for the next week. After inputting one timing, users may select "Log another time slot" to select another time slot in which they are free. Once all free timeslots are logged into the bot, select "Finish" to save your input.
         /result : Display who's free on all the timeslots
+        /edit : Edit your input if there are any last minute changes before the week begins
 
         Note: Users may only input their free times once per week. Repeat submissions will not be saved in the system"""
     context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
@@ -97,6 +99,38 @@ def start(update: Update, context: CallbackContext) -> int:
     # and a string as callback_data
     # The keyboard is a list of button rows, where each row is in turn
     # a list (hence `[[...]]`).
+    keyboard = [
+        [
+            InlineKeyboardButton("Monday", callback_data=str(Monday)),
+            InlineKeyboardButton("Tuesday", callback_data=str(Tuesday)),
+        ],
+        [   InlineKeyboardButton("Wednesday", callback_data=str(Wednesday))],
+        [
+            InlineKeyboardButton("Thursday", callback_data=str(Thursday)),
+            InlineKeyboardButton("Friday", callback_data=str(Friday)),
+        ],
+        [
+            InlineKeyboardButton("Saturday", callback_data=str(Saturday)),
+            InlineKeyboardButton("Sunday", callback_data=str(Sunday)),
+        ],
+    ]
+    reply_markup = InlineKeyboardMarkup(keyboard)
+    # Send message with text and appended InlineKeyboard
+    update.message.reply_text("Choose a day you are free", reply_markup=reply_markup)
+    # Tell ConversationHandler that we're in state `FIRST` now
+    return FIRST
+
+
+def edit(update: Update, context: CallbackContext) -> int:
+    """Send message on `/start`."""
+    # Get user that sent /start and log his name
+    # Send starting message
+    text = """Re-enter your edited free time slots. Similar to selecting your time slots at the beginning, press "Log another time slot" to select multiple frree time slots. Press "Finish" to save changes into the database."""
+    context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
+    global freeslots
+    freeslots = []
+    global user
+    user = update.message.from_user
     keyboard = [
         [
             InlineKeyboardButton("Monday", callback_data=str(Monday)),
@@ -384,7 +418,11 @@ def addtodb(username, freetimeslots, context, update):
     daystonextmonday = 7 - dayofweek
     dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(dayofnextmonday) + 6)
+    num_daysinmonth = monthrange(2021, date.today().month)[1]
+    if int(dayofnextmonday) + 6 > num_daysinmonth:
+        weeklater = str(int(dayofnextmonday) + 6 - num_daysinmonth)
+    else:
+        weeklater = str(int(dayofnextmonday) + 6)
     weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     #text is the week for use in the database
     if findindb(user.first_name, weektext) is True:
@@ -404,7 +442,36 @@ def addtodb(username, freetimeslots, context, update):
         conn2.commit()
         conn2.close()
 
-
+def editdb(username, freetimeslots, context, update):
+    months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
+              'November', 'December']
+    # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
+    # TODO program the msg to send every sunday
+    dayofweek = datetime.today().weekday()
+    daystonextmonday = 7 - dayofweek
+    dayofnextmonday = str(date.today().day + daystonextmonday)
+    month = months[date.today().month - 1]
+    num_daysinmonth = monthrange(2021, date.today().month)[1]
+    if int(dayofnextmonday) + 6 > num_daysinmonth:
+        weeklater = str(int(dayofnextmonday) + 6 - num_daysinmonth)
+    else:
+        weeklater = str(int(dayofnextmonday) + 6)
+    weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
+    #text is the week for use in the database
+    if findindb(user.first_name, weektext) is False:
+        return context.bot.send_message(text="You have not yet submitted your free times for this week!", chat_id=update.effective_message.chat_id)
+    if findindb(user.first_name, weektext) is True:
+        # if the slot for this person is not found in the db already, create a line in the db for it
+        conn4 = psycopg2.connect(
+            host='ec2-54-227-246-76.compute-1.amazonaws.com',
+            database='dcru7mpak14mu5',
+            user='qezdsylauxhwfj',
+            password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+        )
+        c4 = conn4.cursor()
+        c4.execute('''UPDATE freetime SET free_timeslots = (%s) WHERE (user_name, week) = (%s, %s)''', (arraytotext(freetimeslots), username, weektext))
+        conn4.commit()
+        conn4.close()
 
 def end(update: Update, context: CallbackContext) -> int:
     """Returns `ConversationHandler.END`, which tells the
@@ -418,7 +485,17 @@ def end(update: Update, context: CallbackContext) -> int:
     addtodb(user.first_name, freeslots, context, update)
     query.edit_message_text(text="Thank you for filling in!")
 
+    return ConversationHandler.END
 
+
+def endedit(update: Update, context: CallbackContext) -> int:
+    query = update.callback_query
+    query.answer()
+    freeslotstext = arraytotext(freeslots)
+    text = user.first_name + " is free on " + freeslotstext + "."
+    context.bot.send_message(text=text, chat_id=update.effective_message.chat_id)
+    editdb(user.first_name, freeslots, context, update)
+    query.edit_message_text(text="Your input has been updated!")
 
     return ConversationHandler.END
 
@@ -457,7 +534,11 @@ def result(update: Update, context: CallbackContext) -> int:
     daystonextmonday = 7 - dayofweek
     dayofnextmonday = str(date.today().day + daystonextmonday)
     month = months[date.today().month - 1]
-    weeklater = str(int(dayofnextmonday) + 6)
+    num_daysinmonth = monthrange(2021, date.today().month)[1]
+    if int(dayofnextmonday) + 6 > num_daysinmonth:
+        weeklater = str(int(dayofnextmonday) + 6 - num_daysinmonth)
+    else:
+        weeklater = str(int(dayofnextmonday) + 6)
     weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
     conn3 = psycopg2.connect(
         host='ec2-54-227-246-76.compute-1.amazonaws.com',
@@ -583,9 +664,36 @@ conv_handler = ConversationHandler(
     },
     fallbacks=[CommandHandler('start', start)],
     )
+conv_handler1 = ConversationHandler(
+    entry_points=[CommandHandler('edit', edit),],
+    states={
+        FIRST: [
+            CallbackQueryHandler(monday, pattern='^' + str(Monday) + '$'),
+            CallbackQueryHandler(tuesday, pattern='^' + str(Tuesday) + '$'),
+            CallbackQueryHandler(wednesday, pattern='^' + str(Wednesday) + '$'),
+            CallbackQueryHandler(thursday, pattern='^' + str(Thursday) + '$'),
+            CallbackQueryHandler(friday, pattern='^' + str(Friday) + '$'),
+            CallbackQueryHandler(saturday, pattern='^' + str(Saturday) + '$'),
+            CallbackQueryHandler(sunday, pattern='^' + str(Sunday) + '$'),
+
+        ],
+        SECOND: [
+            CallbackQueryHandler(morning, pattern='^' + str(Morning) + '$'),
+            CallbackQueryHandler(afternoon, pattern='^' + str(Afternoon) + '$'),
+            CallbackQueryHandler(night, pattern='^'     + str(Night) + '$'),
+
+        ],
+        THIRD: [
+            CallbackQueryHandler(endedit, pattern='^' + str(Monday) + '$'),
+            CallbackQueryHandler(start_over, pattern='^' + str(Tuesday) + '$'),
+        ],
+    },
+    fallbacks=[CommandHandler('edit', edit)],
+    )
 
 # Add ConversationHandler to dispatcher that will be used for handling updates
 dispatcher.add_handler(conv_handler)
+dispatcher.add_handler(conv_handler1)
 dispatcher.add_handler(CommandHandler('result', result))
 
 # Schedule the bot tho remind the user for input every sunday
@@ -593,13 +701,13 @@ dispatcher.add_handler(CommandHandler('result', result))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-#updater.start_polling()
+updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
-updater.start_webhook(listen="0.0.0.0",
-                      port=int(PORT),
-                      url_path=API_KEY)
-updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY)
+# updater.start_webhook(listen="0.0.0.0",
+#                       port=int(PORT),
+#                       url_path=API_KEY)
+# updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY)
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
