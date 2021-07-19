@@ -701,13 +701,13 @@ dispatcher.add_handler(CommandHandler('result', result))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-updater.start_polling()
+# updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
-# updater.start_webhook(listen="0.0.0.0",
-#                       port=int(PORT),
-#                       url_path=API_KEY)
-# updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY)
+updater.start_webhook(listen="0.0.0.0",
+                      port=int(PORT),
+                      url_path=API_KEY)
+updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY)
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
