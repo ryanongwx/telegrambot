@@ -4,7 +4,6 @@
 #https://www.psycopg.org/docs/sql.html
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
-from constants import API_KEY
 import logging
 from telegram.ext import (
     Updater,
@@ -33,7 +32,8 @@ c = conn.cursor()
 c.execute('''CREATE TABLE IF NOT EXISTS FREETIME(
             user_name text,
             week text,
-            free_timeslots text
+            free_timeslots text,
+            group_name text
             )''')
 
 conn.commit()
@@ -41,7 +41,7 @@ conn.close()
 
 
 # Create the Updater and pass it your bot's token.
-updater = Updater(token=API_KEY, use_context=True)
+updater = Updater(token=os.environ['API_KEY'], use_context=True)
 
 # Get the dispatcher to register handlers
 dispatcher = updater.dispatcher
