@@ -1069,7 +1069,7 @@ conv_handler = ConversationHandler(
     fallbacks=[CommandHandler('start', start)],
     )
 conv_handler1 = ConversationHandler(
-    entry_points=[CommandHandler('edit', edit),],
+    entry_points=[CommandHandler('edit', edit), ],
     states={
         FIRST: [
             CallbackQueryHandler(monday, pattern='^' + str(Monday) + '$'),
@@ -1123,13 +1123,13 @@ dispatcher.add_handler(CommandHandler('meet', meet))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-# updater.start_polling()
+updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
-updater.start_webhook(listen="0.0.0.0",
-                      port=int(PORT),
-                      url_path=config('API_KEY'))
-updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + config('API_KEY'))
+# updater.start_webhook(listen="0.0.0.0",
+#                       port=int(PORT),
+#                       url_path=config('API_KEY'))
+# updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + config('API_KEY'))
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
