@@ -864,7 +864,9 @@ def thisweekresult(update: Update, context: CallbackContext) -> int:
 def mostpeople(number, most):
     if number > most:
         most = number
-        return most
+    else:
+        most = most
+    return most
 
 # The command that will print the date in which most people in the group are free
 def meet(update: Update, context: CallbackContext) -> int:
@@ -874,7 +876,6 @@ def meet(update: Update, context: CallbackContext) -> int:
         update.message.reply_text("Please /register to your group to proceed")
 
     else:
-
 
         mondaymorning = []
         mondayafternoon = []
@@ -902,7 +903,6 @@ def meet(update: Update, context: CallbackContext) -> int:
         months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October',
                   'November', 'December']
         # Sending this message on a sunday so must add one as the week planning timeslots for starts on monday
-        # TODO program the msg to send every sunday
         dayofweek = datetime.today().weekday()
         daystonextmonday = 7 - dayofweek
 
@@ -924,7 +924,7 @@ def meet(update: Update, context: CallbackContext) -> int:
                     database=config('database'),
                     user=config('user'),
                     password=config('password'),
-    )
+        )
         c5 = conn5.cursor()
         c5.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
         results = c5.fetchall()
@@ -982,6 +982,7 @@ def meet(update: Update, context: CallbackContext) -> int:
                                         mostpeople(len(wednesdaynight), mostpeople(len(wednesdayafternoon), mostpeople(len(wednesdaymorning),
                                         mostpeople(len(tuesdaynight), mostpeople(len(tuesdayafternoon), mostpeople(len(tuesdaymorning),
                                         mostpeople(len(mondaynight), mostpeople(len(mondayafternoon), mostpeople(len(mondaymorning), 0)))))))))))))))))))))
+        logger.info(daywithmostpseople)
         dayswithmost = []
         if len(mondaymorning) == daywithmostpseople:
             dayswithmost.append("Monday Morning")
