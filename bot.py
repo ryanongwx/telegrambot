@@ -25,10 +25,10 @@ PORT = int(os.environ.get('PORT', '8443'))
 
 # Configuring the database by connecting to my heroku postgres database
 conn = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
 )
 c = conn.cursor()
 
@@ -48,7 +48,7 @@ conn.commit()
 conn.close()
 
 # Create the Updater and pass it your bot's token.
-updater = Updater(token=config('API_KEY'), use_context=True)
+updater = Updater(token=os.environ['API_KEY'], use_context=True)
 
 # Get the dispatcher to register handlers
 dispatcher = updater.dispatcher
@@ -85,10 +85,10 @@ def get_group(update, context):
 def get_grouppw(update, context):
     data['password'] = update.message.text
     conn6 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
 )
     c6 = conn6.cursor()
     c6.execute('''SELECT group_name FROM GROUPS''')
@@ -462,10 +462,10 @@ def nameday(day):
 
 def findindb(username, groupname, week1):
     conn1 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
 )
     c1 = conn1.cursor()
     c1.execute('''SELECT user_name FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (week1, groupname))
@@ -512,10 +512,10 @@ def addtodb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is False:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn2 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
 )
         c2 = conn2.cursor()
         c2.execute('''INSERT INTO FREETIME(group_name, user_name, week, free_timeslots)
@@ -544,10 +544,10 @@ def editdb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is True:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn4 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
 )
         c4 = conn4.cursor()
         c4.execute('''UPDATE freetime SET free_timeslots = (%s) WHERE (user_name, week, group_name) = (%s, %s, %s)''', (arraytotext(freetimeslots), username, weektext, data['group']))
@@ -630,11 +630,11 @@ def nextweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
-    )
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
+)
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
         results = c3.fetchall()
@@ -771,11 +771,11 @@ def thisweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofthismonday) + 6)
         weektext = nameday(dayofthismonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
-    )
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
+)
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
         results = c3.fetchall()
@@ -920,10 +920,11 @@ def meet(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn5 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
+                host=os.environ['host'],
+                database=os.environ['database'],
+                user=os.environ['user'],
+                password=os.environ['password'],
+)password'),
         )
         c5 = conn5.cursor()
         c5.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
@@ -1128,8 +1129,8 @@ dispatcher.add_handler(CommandHandler('meet', meet))
 # whereas polling makes the bot query in regular intervals for input by user
 updater.start_webhook(listen="0.0.0.0",
                       port=int(PORT),
-                      url_path=config('API_KEY'))
-updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + config('API_KEY'))
+                      url_path=os.environ['API_KEY'])
+updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + os.environ['API_KEY'])
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
