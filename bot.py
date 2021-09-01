@@ -924,7 +924,6 @@ def meet(update: Update, context: CallbackContext) -> int:
                 database=os.environ['database'],
                 user=os.environ['user'],
                 password=os.environ['password'],
-)password'),
         )
         c5 = conn5.cursor()
         c5.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
