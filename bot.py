@@ -48,7 +48,7 @@ conn.commit()
 conn.close()
 
 # Create the Updater and pass it your bot's token.
-updater = Updater(token=config('API_KEY'), use_context=True)
+updater = Updater(token=API_KEY, use_context=True)
 
 # Get the dispatcher to register handlers
 dispatcher = updater.dispatcher
