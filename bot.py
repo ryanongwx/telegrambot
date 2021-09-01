@@ -22,13 +22,13 @@ from calendar import monthrange
 
 PORT = int(os.environ.get('PORT', '8443'))
 
-
+API_KEY = "1855810014:AAF2mifMeddZtehkuGKhneEtwmhNL-x8Oc0"
 # Configuring the database by connecting to my heroku postgres database
 conn = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
 )
 c = conn.cursor()
 
@@ -85,11 +85,11 @@ def get_group(update, context):
 def get_grouppw(update, context):
     data['password'] = update.message.text
     conn6 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
-)
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+    )
     c6 = conn6.cursor()
     c6.execute('''SELECT group_name FROM GROUPS''')
     names = c6.fetchall()
@@ -462,11 +462,11 @@ def nameday(day):
 
 def findindb(username, groupname, week1):
     conn1 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
-)
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+    )
     c1 = conn1.cursor()
     c1.execute('''SELECT user_name FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (week1, groupname))
     names = c1.fetchall()
@@ -512,11 +512,11 @@ def addtodb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is False:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn2 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
-)
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+        )
         c2 = conn2.cursor()
         c2.execute('''INSERT INTO FREETIME(group_name, user_name, week, free_timeslots)
             VALUES(%s, %s, %s, %s)''', (data['group'], username, weektext, arraytotext(freetimeslots)))
@@ -544,11 +544,11 @@ def editdb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is True:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn4 = psycopg2.connect(
-                host=config('host'),
-                database=config('database'),
-                user=config('user'),
-                password=config('password'),
-)
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+        )
         c4 = conn4.cursor()
         c4.execute('''UPDATE freetime SET free_timeslots = (%s) WHERE (user_name, week, group_name) = (%s, %s, %s)''', (arraytotext(freetimeslots), username, weektext, data['group']))
         conn4.commit()
@@ -630,11 +630,11 @@ def nextweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
-    )
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+        )
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
         results = c3.fetchall()
@@ -771,11 +771,11 @@ def thisweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofthismonday) + 6)
         weektext = nameday(dayofthismonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
-    )
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+        )
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
         results = c3.fetchall()
@@ -920,10 +920,10 @@ def meet(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn5 = psycopg2.connect(
-                    host=config('host'),
-                    database=config('database'),
-                    user=config('user'),
-                    password=config('password'),
+                host='ec2-54-227-246-76.compute-1.amazonaws.com',
+                database='dcru7mpak14mu5',
+                user='qezdsylauxhwfj',
+                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
         )
         c5 = conn5.cursor()
         c5.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
@@ -1123,13 +1123,13 @@ dispatcher.add_handler(CommandHandler('meet', meet))
 # j.run_daily(start, days=(6,), time=time(hour=14, minute=00, second=00))
 
 # Start the Bot
-updater.start_polling()
+# updater.start_polling()
 # When hosting the bot 24/7, we must use webhooks instead of polling as webhooks alert the bot to return a reply
 # whereas polling makes the bot query in regular intervals for input by user
-# updater.start_webhook(listen="0.0.0.0",
-#                       port=int(PORT),
-#                       url_path=config('API_KEY'))
-# updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + config('API_KEY'))
+updater.start_webhook(listen="0.0.0.0",
+                      port=int(PORT),
+                      url_path=API_KEY)
+updater.bot.setWebhook('https://damp-brook-02881.herokuapp.com/' + API_KEY)
 
 # Run the bot until you press Ctrl-C or the process receives SIGINT,
 # SIGTERM or SIGABRT. This should be used most of the time, since
