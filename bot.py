@@ -22,13 +22,13 @@ from calendar import monthrange
 
 PORT = int(os.environ.get('PORT', '8443'))
 
-API_KEY = "1855810014:AAF2mifMeddZtehkuGKhneEtwmhNL-x8Oc0"
+API_KEY = "API_KEY"
 # Configuring the database by connecting to my heroku postgres database
 conn = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
 )
 c = conn.cursor()
 
@@ -85,10 +85,10 @@ def get_group(update, context):
 def get_grouppw(update, context):
     data['password'] = update.message.text
     conn6 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
     )
     c6 = conn6.cursor()
     c6.execute('''SELECT group_name FROM GROUPS''')
@@ -462,10 +462,10 @@ def nameday(day):
 
 def findindb(username, groupname, week1):
     conn1 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
     )
     c1 = conn1.cursor()
     c1.execute('''SELECT user_name FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (week1, groupname))
@@ -512,10 +512,10 @@ def addtodb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is False:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn2 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
         )
         c2 = conn2.cursor()
         c2.execute('''INSERT INTO FREETIME(group_name, user_name, week, free_timeslots)
@@ -544,10 +544,10 @@ def editdb(username, freetimeslots, context, update):
     if findindb(user.first_name, data['group'], weektext) is True:
         # if the slot for this person is not found in the db already, create a line in the db for it
         conn4 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
         )
         c4 = conn4.cursor()
         c4.execute('''UPDATE freetime SET free_timeslots = (%s) WHERE (user_name, week, group_name) = (%s, %s, %s)''', (arraytotext(freetimeslots), username, weektext, data['group']))
@@ -630,10 +630,10 @@ def nextweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
         )
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
@@ -771,10 +771,10 @@ def thisweekresult(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofthismonday) + 6)
         weektext = nameday(dayofthismonday) + " to " + nameday(weeklater) + " " + month
         conn3 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
         )
         c3 = conn3.cursor()
         c3.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
@@ -920,10 +920,10 @@ def meet(update: Update, context: CallbackContext) -> int:
             weeklater = str(int(dayofnextmonday) + 6)
         weektext = nameday(dayofnextmonday) + " to " + nameday(weeklater) + " " + month
         conn5 = psycopg2.connect(
-                host='ec2-54-227-246-76.compute-1.amazonaws.com',
-                database='dcru7mpak14mu5',
-                user='qezdsylauxhwfj',
-                password='10aafda0849084175eaa8c5051f8c027ff562816e7ee0521db0582d924e22458',
+                host='host',
+                database='database',
+                user='user',
+                password='password',
         )
         c5 = conn5.cursor()
         c5.execute('''SELECT user_name, free_timeslots FROM FREETIME WHERE week = (%s) AND group_name = (%s)''', (weektext, data['group']))
